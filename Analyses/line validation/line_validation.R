@@ -51,7 +51,7 @@ writeOGR(random.cors, dsn = "C:/Users/Vania/OneDrive - The University Of British
          layer = "AllDigitization_project_5rep_50km",driver = "ESRI Shapefile", overwrite_layer = TRUE)
 
 # Raster values of real corridors -------------------------------------------------------------------------------
-kenya<-raster("C:/Users/Vania/OneDrive - The University Of British Columbia/TNC Kenya GIS/Procedure/Trial/Exported/globalmodel_Kenyabuffer200km.tif")
+kenya<-raster("C:/Users/Vania/OneDrive - The University Of British Columbia/TNC Kenya GIS/Procedure/Trial/Exported/kenya buffer/globalmodel_Kenyabuffer200km.tif")
 crs(kenya)
 res(kenya)
 class(kenya)
@@ -71,6 +71,9 @@ for(i in 1:length(cor.rmna)){
 
 mean(cor.dat$mean)
 # 1278.671
+
+name1<-paste("all_corridors.csv",sep="")
+write.csv(cor.dat,name1, row.names = FALSE)
 
 # Raster values of sample corridors -------------------------------------------------------------------------------
 sample.cor <- st_read(dsn = "C:/Users/Vania/OneDrive - The University Of British Columbia/TNC Kenya GIS/Data/Random line generation", 
@@ -92,3 +95,6 @@ for(i in 1:length(line.rmna)){
 
 mean(line.dat$mean)
 # 1310.709
+
+name2<-paste("all_random_lines.csv",sep="")
+write.csv(line.dat,name2, row.names = FALSE)

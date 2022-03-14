@@ -58,13 +58,14 @@ class(kenya)
 
 cor.value<-raster::extract(kenya,cor,method='simple')
 cor.rmna<-Filter(Negate(anyNA), cor.value)
-cor.dat<-data.frame(mean = numeric(), max= numeric(), min = numeric(), ninety_pct = numeric(), sd = numeric())
+cor.dat<-data.frame(mean = numeric(), max= numeric(), min = numeric(), ninety_pct = numeric(), sd = numeric(), identifier = character())
 for(i in 1:length(cor.rmna)){
   mean <- mean(cor.rmna[[i]])
   min <- min(cor.rmna[[i]])
   max <- max(cor.rmna[[i]])
   ninety_pct <- quantile(cor.rmna[[i]], probs = 0.9)
   sd = sd(cor.rmna[[i]])
+  identifier <- 
   cor.dat.add <- data.frame(mean = mean, max= max, min = min, ninety_pct = ninety_pct, sd = sd)
   cor.dat <- rbind(cor.dat, cor.dat.add)
 }
@@ -89,7 +90,7 @@ for(i in 1:length(line.rmna)){
   max <- max(line.rmna[[i]])
   ninety_pct <- quantile(line.rmna[[i]], probs = 0.9)
   sd = sd(line.rmna[[i]])
-  line.dat.add <- data.frame(mean = mean, max= max, min = min, ninety_pct = ninety_pct, sd = sd)
+  line.dat.add <- data.frame(mean = mean, max= max, min = min, ninety_pct = ninety_pct, sd = sd, identifier = identifier)
   line.dat <- rbind(line.dat, line.dat.add)
 }
 

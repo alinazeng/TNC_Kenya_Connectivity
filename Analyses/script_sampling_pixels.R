@@ -6,6 +6,8 @@
 # Libraries needed for formatting and tidying data ----
 library(dplyr)
 library(tidyr)
+library(Cairo)
+library(ggplot2)
 
 # import raw data ----
 zone1sample <- read.csv("Input/zone1_samplearea.csv", header = TRUE)
@@ -132,6 +134,27 @@ ggplot(stats_all_zones, aes(x=zone, y=mean)) +
 
 # add three lines showing route mean
 
+ggplot(stats_all_zones, aes(x=zone, y=mean)) + 
+  geom_boxplot(fill = "goldenrod1", notch = FALSE) + 
+  labs(x = "Zone", y = "Mean connectivity value") +
+  theme(axis.text.x = element_text(size = 10, angle = 45, vjust = 1, hjust = 1))  # Angled labels, so text doesn't overlap						
+
+
+# Multiple histograms
+ggplot(stats_all_zones, aes(x = mean)) + 
+  geom_histogram(fill = "goldenrod1", col = "black", 
+                 binwidth = 0.2, boundary = 0, bins = 15) +
+  labs(x = "Mean connectivity value", y = "Frequency") + 
+  facet_wrap(~zone, ncol = 1, scales = "free_y", strip.position = "right") +
+  theme_classic()
+
+
+facet by zone
+x = status (sample VS routes)
+
+colunn = mean, max, min, sd, 90 percentile, status, routes
+
+# reorganize data and plot side by side
 
 
 # t-test, non-parametric 

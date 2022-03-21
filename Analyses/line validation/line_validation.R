@@ -5,10 +5,23 @@ library(sf)
 library(tidyverse)
 library(shape)
 
+# Check raster values of real corridors -------------------------------------------------------------------------------
+cor <- st_read(dsn = "C:/Users/Vania/OneDrive - The University Of British Columbia/TNC Kenya GIS/Data/Random line generation", layer = "AllDigitization_Moll")
+#cor <- st_read(dsn = "C:/Users/vania185.stu/OneDrive - UBC/TNC Kenya GIS/Data/Random line generation", layer = "AllDigitization_Moll")
+
+kenya<-raster("C:/Users/Vania/OneDrive - The University Of British Columbia/TNC Kenya GIS/Procedure/Trial/Exported/kenya buffer/globalmodel_Kenyabuffer200km.tif")
+#kenya<-raster("C:/Users/vania185.stu/OneDrive - UBC/TNC Kenya GIS/Procedure/Trial/Exported/kenya buffer/globalmodel_Kenyabuffer200km.tif")
+
+crs(kenya)
+res(kenya)
+class(kenya)
+
+cor.value<-raster::extract(kenya,cor,method='simple')
+
+# Remove corridors with NAs
+cor<-cor[which(sapply(cor.value,function(x) sum(is.na(x)==T))==0),]
 
 # Random line creation -------------------------------------------------------------------------------
-cor <- st_read(dsn = "C:/Users/Vania/OneDrive - The University Of British Columbia/TNC Kenya GIS/Data/Random line generation", layer = "AllDigitization_Moll")
-
 set.seed(124)
 cor.list <- list()
 path.list <- list()
@@ -47,55 +60,60 @@ dat <- data.frame(id = rep(cor$OBJECTID, each = 5), rowname = row.names(random.c
 rownames(dat) <- row.names(random.cors)
 random.cors <- SpatialLinesDataFrame(random.cors, data = dat)
 
-writeOGR(random.cors, dsn = "C:/Users/Vania/OneDrive - The University Of British Columbia/TNC Kenya GIS/Data/Random line generation", 
-         layer = "AllDigitization_project_5rep_50km",driver = "ESRI Shapefile", overwrite_layer = TRUE)
+writeOGR(random.cors, dsn = "C:/Users/Vania/OneDrive - The University Of British Columbia/TNC Kenya GIS/Data/Random line generation", layer = "AllDigitization_project_5rep_50km",driver = "ESRI Shapefile", overwrite_layer = TRUE)
+#writeOGR(random.cors, dsn = "C:/Users/vania185.stu/OneDrive - UBC/TNC Kenya GIS/Data/Random line generation", layer = "AllDigitization_project_5rep_50km",driver = "ESRI Shapefile", overwrite_layer = TRUE)
 
-# Raster values of real corridors -------------------------------------------------------------------------------
-kenya<-raster("C:/Users/Vania/OneDrive - The University Of British Columbia/TNC Kenya GIS/Procedure/Trial/Exported/kenya buffer/globalmodel_Kenyabuffer200km.tif")
-crs(kenya)
-res(kenya)
-class(kenya)
-
+# Compile statistics of real corridors -------------------------------------------------------------------------------
 cor.value<-raster::extract(kenya,cor,method='simple')
-cor.rmna<-Filter(Negate(anyNA), cor.value)
-cor.dat<-data.frame(mean = numeric(), max= numeric(), min = numeric(), ninety_pct = numeric(), sd = numeric(), identifier = character())
-for(i in 1:length(cor.rmna)){
-  mean <- mean(cor.rmna[[i]])
-  min <- min(cor.rmna[[i]])
-  max <- max(cor.rmna[[i]])
-  ninety_pct <- quantile(cor.rmna[[i]], probs = 0.9)
-  sd = sd(cor.rmna[[i]])
-  identifier <- 
-  cor.dat.add <- data.frame(mean = mean, max= max, min = min, ninety_pct = ninety_pct, sd = sd)
+cor.dat<-data.frame(mean = numeric(), max = numeric(), min = numeric(), ninety_pct = numeric(), sd = numeric(),length = numeric())
+for(i in 1:length(cor.value)){
+  mean <- mean(cor.value[[i]])
+  min <- min(cor.value[[i]])
+  max <- max(cor.value[[i]])
+  ninety_pct <- quantile(cor.value[[i]], probs = 0.9)
+  sd = sd(cor.value[[i]])
+  length = length(cor.value[[i]])
+  cor.dat.add <- data.frame(mean = mean, max= max, min = min, ninety_pct = ninety_pct, sd = sd, length = length)
   cor.dat <- rbind(cor.dat, cor.dat.add)
 }
+
+cor.dat$identifier <- seq(1,nrow(cor.dat),by=1)
 
 mean(cor.dat$mean)
 # 1278.671
 
-name1<-paste("all_corridors.csv",sep="")
+name1<-paste("C:/Users/Vania/OneDrive - The University Of British Columbia/TNC Kenya GIS/Data/Random line generation/all_corridors.csv",sep="")
+#name1<-paste("C:/Users/vania185.stu/OneDrive - UBC/TNC Kenya GIS/Data/Random line generation/all_corridors.csv",sep="")
 write.csv(cor.dat,name1, row.names = FALSE)
 
 # Raster values of sample corridors -------------------------------------------------------------------------------
-sample.cor <- st_read(dsn = "C:/Users/Vania/OneDrive - The University Of British Columbia/TNC Kenya GIS/Data/Random line generation", 
-                      layer = "AllDigitization_project_5rep_50km")
+sample.cor <- st_read(dsn = "C:/Users/Vania/OneDrive - The University Of British Columbia/TNC Kenya GIS/Data/Random line generation", layer = "AllDigitization_project_5rep_50km")
+#sample.cor <- st_read(dsn = "C:/Users/vania185.stu/OneDrive - UBC/TNC Kenya GIS/Data/Random line generation", layer = "AllDigitization_project_5rep_50km")
 
 line.value<-raster::extract(kenya,sample.cor,method='simple')
-line.rmna<-Filter(Negate(anyNA), line.value)
+#line.rmna<-Filter(Negate(anyNA), line.value)
 
 line.dat<-data.frame(mean = numeric(), max= numeric(), min = numeric(), ninety_pct = numeric(), sd = numeric())
-for(i in 1:length(line.rmna)){
-  mean <- mean(line.rmna[[i]])
-  min <- min(line.rmna[[i]])
-  max <- max(line.rmna[[i]])
-  ninety_pct <- quantile(line.rmna[[i]], probs = 0.9)
-  sd = sd(line.rmna[[i]])
-  line.dat.add <- data.frame(mean = mean, max= max, min = min, ninety_pct = ninety_pct, sd = sd, identifier = identifier)
+for(i in 1:length(line.value)){
+  mean <- mean(line.value[[i]])
+  min <- min(line.value[[i]])
+  max <- max(line.value[[i]])
+  ninety_pct <- quantile(line.value[[i]], probs = 0.9,na.rm=T)
+  sd = sd(line.value[[i]])
+  line.dat.add <- data.frame(mean = mean, max= max, min = min, ninety_pct = ninety_pct, sd = sd)
   line.dat <- rbind(line.dat, line.dat.add)
 }
 
+line.dat$identifier = rep(unique(cor.dat$identifier),each=5)
+
+# Remove sample lines with NAs
+line.dat<-line.dat[which(sapply(line.value,function(x) sum(is.na(x)==T))==0),]
+
+# Remove sample lines with only 1 point
+line.dat<-line.dat[-which(is.na(line.dat$sd) == T),]         
 mean(line.dat$mean)
 # 1310.709
 
-name2<-paste("all_random_lines.csv",sep="")
+name2<-paste("C:/Users/Vania/OneDrive - The University Of British Columbia/TNC Kenya GIS/Data/Random line generation/all_random_lines.csv",sep="")
+#name2<-paste("C:/Users/vania185.stu/OneDrive - UBC/TNC Kenya GIS/Data/Random line generation/all_random_lines.csv",sep="")
 write.csv(line.dat,name2, row.names = FALSE)
